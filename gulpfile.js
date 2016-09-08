@@ -7,9 +7,10 @@ var uglify = require('gulp-uglify');
 var ghPages = require('gulp-gh-pages');
 var _ = require('lodash');
 var webserver = require('gulp-webserver');
+var mkdirp = require('mkdirp');
 
 var prod_endpoint = '//xbtsw.github.io/chromecastit/chromecastit.js';
-var dev_endpoint = '//localhost:4567/chromecastit.js';
+var dev_endpoint = '//  localhost:4567/chromecastit.js';
 
 function buildBookmarklet(isDev) {
   var endpoint;
@@ -23,14 +24,16 @@ function buildBookmarklet(isDev) {
 }
 
 function buildHtml(isDev) {
+  mkdirp.sync(path.join(__dirname, './dist'));
   var bookmarkletCode = buildBookmarklet(isDev);
 
   var indexTemplate = fs.readFileSync(path.join(__dirname, 'src/index.html'), 'utf-8');
   var indexCode = _.template(indexTemplate)({'bookmarklet_code': bookmarkletCode});
-  fs.writeFileSync(path.join(__dirname, 'dist/index.html'), indexCode);
+  fs.writeFileSync(path.join(__dirname, './dist/index.html'), indexCode);
 }
 
 function buildJs(isDev) {
+  mkdirp.sync(path.join(__dirname, './dist'));
   var pipes = [];
   pipes.push(gulp.src('./src/chromecastit.js'));
   if (!isDev) {
