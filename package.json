@@ -1,0 +1,28 @@
+{
+  "name": "chromecastit",
+  "version": "0.0.1",
+  "description": "A bookmarklet to cast various video sites on ChromeCast",
+  "scripts": {
+    "test": "gulp local",
+    "deploy": "gulp deploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xbtsw/chromecastit.git"
+  },
+  "author": "xbtsw",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/xbtsw/chromecastit/issues"
+  },
+  "homepage": "https://github.com/xbtsw/chromecastit#readme",
+  "devDependencies": {
+    "bookmarkletify": "^1.0.0",
+    "gulp": "^3.9.1",
+    "gulp-gh-pages": "^0.5.4",
+    "gulp-uglify": "^2.0.0",
+    "gulp-webserver": "^0.9.1",
+    "lodash": "^4.15.0",
+    "pump": "^1.0.1"
+  }
+}
