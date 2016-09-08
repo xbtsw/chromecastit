@@ -16,6 +16,9 @@
     console.log(e);
   }
 
+  function noOp() {
+  }
+
   window['__onGCastApiAvailable'] = function(loaded, errorInfo) {
     if (loaded) {
       initializeCastApi();
@@ -30,8 +33,7 @@
   function initializeCastApi() {
     var apiConfig = new chrome.cast.ApiConfig(
       new chrome.cast.SessionRequest(chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID),
-      onSessionConnected.bind(null, function() {
-      }),
+      onSessionConnected.bind(null, noOp),
       function receiverListener(receiverAvailability) {
         if (receiverAvailability === 'available') {
           console.log('receiver found');
@@ -88,9 +90,9 @@
     }
 
     if (session.media.length != 0) {
-      onMediaDiscovered('onRequestSession', session.media[0]);
+      onMediaDiscovered('onRequestSession', noOp, session.media[0]);
     }
-    session.addMediaListener(onMediaDiscovered.bind(this, 'addMediaListener'));
+    session.addMediaListener(onMediaDiscovered.bind(this, 'addMediaListener', noOp));
     session.addUpdateListener(onSessionUpdated.bind(this));
     cb();
   }
@@ -119,7 +121,7 @@
   }
 
 
-  function loadMedia(mediaTitle, mediaUrl, mediaImageUrl) {
+  function loadMedia(mediaTitle, mediaUrl, mediaImageUrl, cb) {
     if (!currentSession) {
       console.log('no session');
       return;
@@ -138,14 +140,15 @@
     request.currentTime = 0;
 
     currentSession.loadMedia(request,
-      onMediaDiscovered.bind(this, 'loadMedia'),
+      onMediaDiscovered.bind(this, 'loadMedia', cb),
       onError);
   }
 
-  function onMediaDiscovered(how, media) {
+  function onMediaDiscovered(how, cb, media) {
     console.log('new media session ID:' + media.mediaSessionId + ' via (' + how + ')');
     currentMedia = media;
     media.addUpdateListener(onMediaUpdated);
+    cb();
   }
 
   function getMediaStatus() {
@@ -228,14 +231,16 @@
       if (!currentSession) {
         createSession(function() {
           findUrl(function(title, url, imgUrl) {
-            loadMedia(title, url, imgUrl);
-            playMedia();
+            loadMedia(title, url, imgUrl, function() {
+              playMedia();
+            });
           });
         });
       } else {
         findUrl(function(title, url, imgUrl) {
-          loadMedia(title, url, imgUrl);
-          playMedia();
+          loadMedia(title, url, imgUrl, function() {
+            playMedia();
+          });
         });
       }
     });

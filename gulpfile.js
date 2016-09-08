@@ -8,6 +8,7 @@ var ghPages = require('gulp-gh-pages');
 var _ = require('lodash');
 var webserver = require('gulp-webserver');
 var mkdirp = require('mkdirp');
+var gulpFile = require('gulp-file');
 
 var prod_endpoint = '//xbtsw.github.io/chromecastit/chromecastit.js';
 var dev_endpoint = '//  localhost:4567/chromecastit.js';
@@ -24,38 +25,48 @@ function buildBookmarklet(isDev) {
 }
 
 function buildHtml(isDev) {
-  mkdirp.sync(path.join(__dirname, './dist'));
   var bookmarkletCode = buildBookmarklet(isDev);
 
   var indexTemplate = fs.readFileSync(path.join(__dirname, 'src/index.html'), 'utf-8');
   var indexCode = _.template(indexTemplate)({'bookmarklet_code': bookmarkletCode});
-  fs.writeFileSync(path.join(__dirname, './dist/index.html'), indexCode);
+  return gulpFile('index.html', indexCode);
 }
 
 function buildJs(isDev) {
-  mkdirp.sync(path.join(__dirname, './dist'));
   var pipes = [];
   pipes.push(gulp.src('./src/chromecastit.js'));
   if (!isDev) {
     pipes.push(uglify());
+    return pump(pipes);
   }
-  pipes.push(gulp.dest('./dist'));
-  pump(pipes);
+  return pipes[0];
 }
 
-gulp.task('local', function() {
-  buildHtml(true);
-  buildJs(true);
-  pump([
-    gulp.src('./dist'),
-    webserver({open: true, port: 4567})
-  ])
+gulp.task('writeFile:dev', function() {
+  return pump([
+    buildHtml(true),
+    buildJs(true),
+    gulp.dest('./dist')
+  ]);
 });
 
-gulp.task('deploy', function() {
-  buildHtml(false);
-  buildJs(false);
-  pump([
+gulp.task('writeFile:prod', function() {
+  return pump([
+    buildHtml(true),
+    buildJs(true),
+    gulp.dest('./dist')
+  ]);
+});
+
+gulp.task('local', ['writeFile:dev'], function() {
+  return pump([
+    gulp.src('./dist'),
+    webserver({open: true, port: 4567})
+  ]);
+});
+
+gulp.task('deploy', ['writeFile:prod'], function() {
+  return pump([
     gulp.src('./dist/**/*'),
     ghPages()
   ]);
